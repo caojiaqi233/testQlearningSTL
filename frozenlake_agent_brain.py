@@ -95,6 +95,7 @@ class QLearningTable:
                 if self.q_table.index[j] == state:
                     self.q_table_final.loc[state, :] = self.q_table.loc[state, :]
 
+
         print()
         print('Length of final Q-table =', len(self.q_table_final.index))
         print('Final Q-table with values from the final route:')

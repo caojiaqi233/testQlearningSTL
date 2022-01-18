@@ -71,12 +71,14 @@ def update():
     #reward_table = np.array([[-1, -2, 6, 7, 800], [0, -2,6,7,7],[1,-2,5,-2,6],[2,3,4,-2,5],[1,2,3,-2,4]])
     #reward_table = np.array([[0, 0, 3, 3.5, 4], [0, 0,2.5,0,0],[0,-1,2,0,0],[0.5,1,1.5,0,0],[0,0,0,0,0]])
     reward_table = np.array([[-9,-100,-1,0,1],[-8,-100,-2,-1,0],[-7,-100,-3,-100,-2],[-6,-5,-4,-100,-3],[-7,-6,-5,-100,-4]])
+    rob1 = np.array([[-9,-100,-1,0,1],[-8,-100,-2,-1,0],[-7,-100,-3,-100,-2],[-6,-5,-4,-100,-3],[-7,-6,-5,-100,-4]])
     
     all_reward_sum = []
 
     for episode in range(5000):
         # Initial Observation
         observation = env.reset()
+        rob1_pre = rob1[observation//5][observation%5]
 
         # Updating number of Steps for each Episode
         i = 0
@@ -99,8 +101,15 @@ def update():
             # access new reward from reward_table
             hang = observation_ // 5
             lie = observation_ % 5
+            
+            rob1_now = rob1[hang][lie]
+            rob1_now = min(rob1_now,rob1_pre)
+            rob1_pre = rob1_now
+            reward_table[hang][lie] = reward_table[hang][lie] + rob1_now
+            
             reward_new = reward_table[hang][lie]
             reward_sum = reward_sum +reward_new
+            
 
             # RL learns from this transition and calculating the cost
             cost += RL.learn(str(observation), action, reward_new, str(observation_))
