@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="8d824ef0-b056-44f3-980c-4ab5a041294a" name="lissy">
+        <fileTransfer rootFolder="/home/hongi/devel" accessType="SFTP" host="10.162.12.150" port="22" sshConfigId="19b4694d-c121-4083-8737-d6107c97500d" sshConfig="hongi@10.162.12.150:22 password">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>

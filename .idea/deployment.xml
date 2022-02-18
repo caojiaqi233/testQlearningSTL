@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="PublishConfigData" serverName="lissy" remoteFilesAllowedToDisappearOnAutoupload="false">
+    <serverData>
+      <paths name="lissy">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/testQlearningSTL" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+    </serverData>
+  </component>
+</project>

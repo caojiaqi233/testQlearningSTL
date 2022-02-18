@@ -14,6 +14,7 @@ from tensorboardX import SummaryWriter
 
 import car2D
 import matplotlib.pyplot as plt
+
 '''
 Implementation of Deep Deterministic Policy Gradients (DDPG) with pytorch 
 riginal paper: https://arxiv.org/abs/1509.02971
@@ -21,54 +22,58 @@ Not the author's implementation !
 '''
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--mode', default='train', type=str) # mode = 'train' or 'test'
+parser.add_argument('--mode', default='train', type=str)  # mode = 'train' or 'test'
 # OpenAI gym environment name, # ['BipedalWalker-v2', 'Pendulum-v0'] or any continuous environment
 # Note that DDPG is feasible about hyper-parameters.
 # You should fine-tuning if you change to another environment.
 parser.add_argument("--env_name", default="Pendulum-v0")
-parser.add_argument('--tau',  default=0.005, type=float) # target smoothing coefficient
+parser.add_argument('--tau', default=0.005, type=float)  # target smoothing coefficient
 parser.add_argument('--target_update_interval', default=1, type=int)
 parser.add_argument('--test_iteration', default=10, type=int)
 
 parser.add_argument('--learning_rate', default=1e-4, type=float)
-parser.add_argument('--gamma', default=0.99, type=int) # discounted factor
-parser.add_argument('--capacity', default=1000000, type=int) # replay buffer size
-parser.add_argument('--batch_size', default=100, type=int) # mini batch size
+parser.add_argument('--gamma', default=0.99, type=int)  # discounted factor
+parser.add_argument('--capacity', default=1000000, type=int)  # replay buffer size
+parser.add_argument('--batch_size', default=100, type=int)  # mini batch size
 parser.add_argument('--seed', default=False, type=bool)
 parser.add_argument('--random_seed', default=9527, type=int)
 # optional parameters
 
 parser.add_argument('--sample_frequency', default=2000, type=int)
-parser.add_argument('--render', default=False, type=bool) # show UI or not
-parser.add_argument('--log_interval', default=50, type=int) #
-parser.add_argument('--load', default=False, type=bool) # load model
-parser.add_argument('--render_interval', default=100, type=int) # after render_interval, the env.render() will work
+parser.add_argument('--render', default=False, type=bool)  # show UI or not
+parser.add_argument('--log_interval', default=50, type=int)  #
+parser.add_argument('--load', default=False, type=bool)  # load model
+parser.add_argument('--render_interval', default=100, type=int)  # after render_interval, the env.render() will work
 parser.add_argument('--exploration_noise', default=0.1, type=float)
-parser.add_argument('--max_episode', default=3, type=int) # num of games
+parser.add_argument('--max_episode', default=3, type=int)  # num of games
 parser.add_argument('--print_log', default=5, type=int)
 parser.add_argument('--update_iteration', default=200, type=int)
 args = parser.parse_args()
 
-device = 'cuda' if torch.cuda.is_available() else 'cpu'
+# device = 'cuda' if torch.cuda.is_available() else 'cpu'
+# todo some problem with GPU training needs to be fixed
+# todo since the the scenario is kinda simple, using cpu training is actually fast enough
+
+device = 'cpu'
 script_name = os.path.basename(__file__)
 env = car2D.Car2D()
-#env = gym.make(args.env_name)
+# env = gym.make(args.env_name)
 
 if args.seed:
     env.seed(args.random_seed)
     torch.manual_seed(args.random_seed)
     np.random.seed(args.random_seed)
 
-
 state_dim = env.observation_space.shape[0]
 # state_dim = 4
 action_dim = env.action_space.shape[0]
 # action_dim = 2
 max_action = float(env.action_space.high[0])
-#max_action = 0.11999999731779099
-min_Val = torch.tensor(1e-7).float().to(device) # min value
+# max_action = 0.11999999731779099
+min_Val = torch.tensor(1e-7).float().to(device)  # min value
 
-directory = './exp' + script_name + args.env_name +'./'
+directory = './exp' + script_name + args.env_name + './'
+
 
 class Replay_buffer():
     '''
@@ -76,6 +81,7 @@ class Replay_buffer():
     https://github.com/openai/baselines/blob/master/baselines/deepq/replay_buffer.py
     Expects tuples of (state, next_state, action, reward, done)
     '''
+
     def __init__(self, max_size=args.capacity):
         self.storage = []
         self.max_size = max_size
@@ -125,7 +131,7 @@ class Critic(nn.Module):
         super(Critic, self).__init__()
 
         self.l1 = nn.Linear(state_dim + action_dim, 400)
-        self.l2 = nn.Linear(400 , 300)
+        self.l2 = nn.Linear(400, 300)
         self.l3 = nn.Linear(300, 1)
 
     def forward(self, x, u):
@@ -170,7 +176,7 @@ class DDPG(object):
 
             # Compute the target Q value
             target_Q = self.critic_target(next_state, self.actor_target(next_state))
-            target_Q = reward + ((1-done) * args.gamma * target_Q).detach()
+            target_Q = reward + ((1 - done) * args.gamma * target_Q).detach()
 
             # Get current Q estimate
             current_Q = self.critic(state, action)
@@ -216,6 +222,7 @@ class DDPG(object):
         print("model has been loaded...")
         print("====================================")
 
+
 def main():
     agent = DDPG(state_dim, action_dim, max_action)
     ep_r = 0
@@ -241,7 +248,7 @@ def main():
         list_ave_reward = []
         for i in range(args.max_episode):
             total_reward = 0
-            step =0
+            step = 0
             state = env.reset()
             for t in count():
                 action = agent.select_action(state)
@@ -249,7 +256,7 @@ def main():
                     env.action_space.low, env.action_space.high)
 
                 next_state, reward, done, info = env.step(action)
-                if args.render and i >= args.render_interval : env.render()
+                if args.render and i >= args.render_interval: env.render()
                 agent.replay_buffer.push((state, next_state, action, reward, np.float(done)))
 
                 state = next_state
@@ -257,17 +264,18 @@ def main():
                     break
                 step += 1
                 total_reward += reward
-            total_step += step+1
+            total_step += step + 1
             print("Total T:{} Episode: \t{} Total Reward: \t{:0.2f}".format(total_step, i, total_reward))
-            list_ave_reward.append(total_reward/step)
+            list_ave_reward.append(total_reward / step)
             agent.update()
-           # "Total T: %d Episode Num: %d Episode T: %d Reward: %f
+            # "Total T: %d Episode Num: %d Episode T: %d Reward: %f
 
             if i % args.log_interval == 0:
                 agent.save()
-        #plt.plot(list_ave_reward,range(len(list_ave_reward)))
+        # plt.plot(list_ave_reward,range(len(list_ave_reward)))
     else:
         raise NameError("mode wrong!!!")
+
 
 if __name__ == '__main__':
     main()
