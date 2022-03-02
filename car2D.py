@@ -35,15 +35,15 @@ class Car2D(gym.Env):
         self.tau = 1        # time step s
         self.ob_xmin = 2.0      # range of rectangle obstacle
         self.ob_xmax = 3.0
-        self.ob_ymin = 2.0
-        self.ob_ymax = 3.0
+        self.ob_ymin = 3.0
+        self.ob_ymax = 4.0
         self.goal = np.array([5.0,5.0])
         self.goal_r = 0.5
 
         obs_high = np.array([6.0, 6.0, 1.2, 1.2], dtype=np.float32)
-        obs_low = np.array([0.0, 0.0, -1.2, -1.2], dtype=np.float32)
-        act_high = np.array([0.08, 0.08], dtype=np.float32)
-        act_low = np.array([0.0, 0.0], dtype=np.float32)
+        obs_low = np.array([0.0, 0.0, 0, 0], dtype=np.float32)
+        act_high = np.array([0.05, 0.05], dtype=np.float32)
+        act_low = np.array([-0.05, -0.05], dtype=np.float32)
         self.action_space = spaces.Box(low=act_low, high=act_high, dtype=np.float32)
         self.observation_space = spaces.Box(low=-obs_low, high=obs_high, dtype=np.float32)
 
@@ -68,11 +68,16 @@ class Car2D(gym.Env):
 
         # next step
         s_temp = np.array([0.0,0.0,0.0,0.0])
-        s_temp[0] = self.s[0]+self.s[2]*self.tau+1/2*a[0]*self.tau**2
-        s_temp[1] = self.s[1]+self.s[3]*self.tau+1/2*a[1]*self.tau**2
-        s_temp[2] = self.s[2]+a[0]*self.tau
-        s_temp[3] = self.s[3]+a[1]*self.tau
         
+        s_temp[2] = self.s[2]+a[0]*self.tau
+        s_temp[2] = np.clip(s_temp[2], self.observation_space.low[2], self.observation_space.high[2])
+        
+        s_temp[3] = self.s[3]+a[1]*self.tau
+        s_temp[3] = np.clip(s_temp[3], self.observation_space.low[3], self.observation_space.high[3])
+        
+        s_temp[0] = self.s[0]+1/2*(s_temp[2]+self.s[2])*self.tau
+        
+        s_temp[1] = self.s[1]+1/2*(s_temp[3]+self.s[3])*self.tau
         
         
         # reward and isdone
@@ -83,19 +88,26 @@ class Car2D(gym.Env):
         elif s_temp[0]>self.map_xmax or s_temp[0]<self.map_xmin or s_temp[1]>self.map_ymax or s_temp[1]<self.map_ymin:
             r = -100.0
             d = 1
+            """
         elif abs(s_temp[0]-self.goal[0])<=self.goal_r and abs(s_temp[1]-self.goal[1])<=self.goal_r:
-            r = 2.0
+            r = 100.0
             d = 0
+            """
+            """
+        elif abs(s_temp[0]-self.goal[0])<=self.goal_r or abs(s_temp[1]-self.goal[1])<=self.goal_r:
+            r = 20.0
+            d = 0
+            """
         else:
-            r = 0.0
+            #r = 0.0
+            r = -0.01*((s_temp[0]-self.goal[0])**2+(s_temp[1]-self.goal[1])**2)
+            d = 0
         i = 'None'      # information
         
         self.s = s_temp
-        print(self.s)
-        
-        return(s_temp,r,d,i)
 
-        """
+        return(s_temp,r,d,i)
+    """
         th, thdot = self.state  # th := theta
 
         g = self.g
@@ -113,7 +125,7 @@ class Car2D(gym.Env):
 
         self.state = np.array([newth, newthdot])
         return self._get_obs(), -costs, False, {}
-        """
+    """
         
 
     def reset(self, *, seed: Optional[int] = None, options: Optional[dict] = None):
@@ -124,6 +136,7 @@ class Car2D(gym.Env):
         self.last_u = None
         return self._get_obs()
         """
+
         self.s = np.array([0.0, 0.0, 0.0, 0.0])
         return self.s
 
